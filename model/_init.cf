@@ -1,3 +1,19 @@
-greeting = hello("world")
+entity ShortUrl extends std::PurgeableResource:
+    """
+        A long url shortend by the bitly service
+        :attr long_url: The long url that the bitly service should shorten
+        :attr api_key: The api token to authorize against the bitly api
+        :attr agent: The agent that manages this resource
+        :attr short_url: The shortened url (populated by a fact)
+    """
+    string long_url
+    string api_key
+    string agent="internal"
+    string short_url
+end
 
-std::print(greeting)
+implementation shortUrlFact for ShortUrl:
+    self.short_url = std::getfact(self, "short_url")
+end
+
+implement ShortUrl using shortUrlFact
