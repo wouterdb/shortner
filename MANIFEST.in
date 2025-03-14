@@ -1,0 +1,5 @@
+include inmanta_plugins/shortner/setup.cfg
+include inmanta_plugins/shortner/py.typed
+recursive-include inmanta_plugins/shortner/model *.cf
+graft inmanta_plugins/shortner/files
+graft inmanta_plugins/shortner/templates
