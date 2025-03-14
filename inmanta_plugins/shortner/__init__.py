@@ -34,12 +34,21 @@ from inmanta.resources import PurgeableResource, resource
 class ShlinkClient:
 
     def __init__(self, server_url: str, api_key: str) -> None:
+        """
+        :param server_url: The server to connect to
+        :param api_key: the api key to use
+        """
         self.api_key = api_key
         self.server_url = server_url
 
     def find_instance_for(
         self, long_url: str, logger: Optional[LoggerABC] = None
     ) -> Optional[dict]:
+        """
+        Get the instance registered for this long_url on the server 
+        
+        :return: None if not found
+        """
         url = urllib.parse.urljoin(self.server_url, "rest/v3/short-urls")
         headers = {"Accept": "application/json", "X-Api-Key": self.api_key}
         # this matches sub strings, so needs another filter to prevent confusing
@@ -65,7 +74,7 @@ class ShlinkClient:
         return found[0]
 
     def create(self, long_url: str) -> dict:
-        """Create a new url"""
+        """Create a new shortened URL, return the short form, return the api instance"""
         url = urllib.parse.urljoin(self.server_url, "rest/v3/short-urls")
         headers = {"Accept": "application/json", "X-Api-Key": self.api_key}
 
@@ -90,43 +99,20 @@ class ShlinkClient:
         response.raise_for_status()
 
 
-@resource("shortner::ShortUrl", agent="server.url", id_attribute="long_url")
+@resource("shortner::ShortUrl", agent="TODO", id_attribute="long_url")
 class ShortUrl(PurgeableResource):
     fields = ("long_url", "server_url", "api_key")
 
-    @classmethod
-    def get_server_url(cls, exporter, resource):
-        return resource.server.url
-
-    @classmethod
-    def get_api_key(cls, exporter, resource):
-        return resource.server.api_key
 
 
 @provider("shortner::ShortUrl", name="rebrandly")
-class RebrandlyHandler(CRUDHandler):
-
-    record_id: str | None
+class ShlinkHandler(CRUDHandler):
 
     def read_resource(self, ctx: HandlerContext, resource: ShortUrl) -> None:
-        client = ShlinkClient(api_key=resource.api_key, server_url=resource.server_url)
-
-        instance = client.find_instance_for(resource.long_url, ctx)
-
-        if instance is None:
-            raise ResourcePurged()
-
-        self.record_id = instance["shortCode"]
-        self.publish_facts(ctx, instance)
-
-    def publish_facts(self, ctx: HandlerContext, instance: dict) -> None:
-        ctx.set_fact("short_url", instance["shortUrl"])
+       ...
 
     def create_resource(self, ctx: HandlerContext, resource: ShortUrl) -> None:
-        client = ShlinkClient(api_key=resource.api_key, server_url=resource.server_url)
-        instance = client.create(resource.long_url)
-        self.publish_facts(ctx, instance)
-        ctx.set_created()
+        ...
 
     def update_resource(
         self, ctx: HandlerContext, changes: dict, resource: ShortUrl
@@ -134,17 +120,10 @@ class RebrandlyHandler(CRUDHandler):
         raise Exception("update is not supported")
 
     def delete_resource(self, ctx: HandlerContext, resource: ShortUrl) -> None:
-        link_id = self.record_id
-        assert link_id is not None
-        client = ShlinkClient(api_key=resource.api_key, server_url=resource.server_url)
-        client.delete_instance(link_id)
-        ctx.set_purged()
+        ...
+
+    def publish_facts(self, ctx: HandlerContext, instance: dict) -> None:
+        ctx.set_fact("short_url", instance["shortUrl"])
 
     def facts(self, ctx: HandlerContext, resource: ShortUrl) -> Dict[str, object]:
-        client = ShlinkClient(api_key=resource.api_key, server_url=resource.server_url)
-        instance = client.find_instance_for(resource.long_url, ctx)
-        if instance is None:
-            return {}
-
-        self.publish_facts(ctx, instance)
-        return {}
+       ...

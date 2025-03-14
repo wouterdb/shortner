@@ -19,17 +19,21 @@ def test_list(shlink_url: str, api_key: str) -> None:
 def test_get_create_delete(
     test_url: str, shlink: inmanta_plugins.shortner.ShlinkClient
 ) -> None:
+    # Test the ShlinkClient!
 
-    # get, expect none
-    assert not shlink.find_instance_for(test_url)
+    # check if the test url is already shortned on this server
+    # and make sure this is not so
+    
 
-    # create
-    created = shlink.create(test_url)
-    assert created
+    # create a short link towards the test url
+    
 
-    # get, expect one
-    assert shlink.find_instance_for(test_url)
+    # check if the test url is already shortned on this server
+    # and make sure this is so
+    
 
-    # delete
-    short_code = created["shortCode"]
-    shlink.delete_instance(short_code)
+    # delete the link we created
+
+    
+    # check if the test url is already shortned on this server
+    # and make sure this is not so
