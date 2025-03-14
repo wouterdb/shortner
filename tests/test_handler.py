@@ -1,16 +1,26 @@
+from pytest_inmanta.plugin import Project
+
+import inmanta_plugins.shortner
 from inmanta.agent.handler import HandlerContext
 
 
-def test_handler(api_key, project, rebrandly):
+def test_handler(
+    project: Project, shlink: inmanta_plugins.shortner.ShlinkClient, test_url: str
+):
     def make_model(purged=False):
         project.compile(
             f"""
             import shortner
 
+            server = shortner::ShlinkServer(
+                url = "{shlink.server_url}",
+                api_key = "{shlink.api_key}",
+            )
+            
             shortner::ShortUrl(
-                long_url="https://inmanta.com/",
-                api_key="{api_key}",
-                purged={str(purged).lower()}
+                long_url = "{test_url}",
+                server = server,
+                purged = {str(purged).lower()}
             )
 
         """
@@ -19,7 +29,8 @@ def test_handler(api_key, project, rebrandly):
     make_model()
     r = project.get_resource("shortner::ShortUrl")
     assert r
-    assert r.api_key == api_key
+    assert r.api_key == shlink.api_key
+    assert r.server_url == shlink.server_url
     assert r.long_url == "https://inmanta.com/"
 
     result = project.dryrun_resource_v2("shortner::ShortUrl")
@@ -45,6 +56,7 @@ def test_handler(api_key, project, rebrandly):
     assert "short_url" in facts_by_id
     assert short_url == facts_by_id["short_url"]["value"]
 
+    # delete
     make_model(purged=True)
 
     result = project.dryrun_resource_v2("shortner::ShortUrl")

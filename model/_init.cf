@@ -1,3 +1,13 @@
+entity ShlinkServer:
+    string url
+    string api_key
+end
+
+implement ShlinkServer using std::none
+index ShlinkServer(url)
+
+ShortUrl.server [1] -- ShlinkServer
+
 entity ShortUrl extends std::PurgeableResource:
     """
         A long url shortend by the bitly service
@@ -7,8 +17,6 @@ entity ShortUrl extends std::PurgeableResource:
         :attr short_url: The shortened url (populated by a fact)
     """
     string long_url
-    string api_key
-    string agent="internal"
     string short_url
 end
 
@@ -17,3 +25,5 @@ implementation shortUrlFact for ShortUrl:
 end
 
 implement ShortUrl using shortUrlFact
+
+index ShortUrl(server, long_url)
